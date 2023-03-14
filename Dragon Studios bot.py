@@ -2,7 +2,6 @@ import discord
 from discord.utils import get
 from discord.ext import commands
 
-TOKEN = 'MTA4NDE5NDgzNjA3NDIwNTI4NQ.Gv0Quq.RhcLDVKlP1Xf6ubVa2aXC-tzhDVS6NpfAWhIoY'
 GUILD = '1073348814573928468'
 EMOJI_BELL = '🔔'
 EMOJI_GIVEAWAY = '🎉'
@@ -31,8 +30,6 @@ async def on_raw_reaction_add(payload):
         guild = client.get_guild(payload.guild_id)
         role = guild.get_role(ROLE_GIVEAWAY_ID)
         await payload.member.add_roles(role)
-
-
 @client.event
 async def on_raw_reaction_remove(payload):
     if payload.emoji.name == EMOJI_BELL:
