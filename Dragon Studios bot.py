@@ -1,8 +1,14 @@
+import os
 import json
 import discord
 from discord.utils import get
 from discord.ext import commands
 
+CONFIG_PATH = 'settings.json'
+
+if not os.path.isfile(CONFIG_PATH):
+    with open(CONFIG_PATH, 'w') as config_file:
+        config_file.write('{"token": ""}')
 
 with open('settings.json', 'r') as token_file:
     data = json.load(token_file)
