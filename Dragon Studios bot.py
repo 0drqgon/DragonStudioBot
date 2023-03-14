@@ -4,6 +4,7 @@ import discord
 from discord.utils import get
 from discord.ext import commands
 
+<<<<<<< Updated upstream
 CONFIG_PATH = 'settings.json'
 
 if not os.path.isfile(CONFIG_PATH):
@@ -14,6 +15,9 @@ with open('settings.json', 'r') as token_file:
     data = json.load(token_file)
 TOKEN = data.get('token', None)
 
+=======
+TOKEN = 'MTA4NDE5NDgzNjA3NDIwNTI4NQ.G-Souc.o9wOAIHtqUhDonmcZD0ibWPLwn4kncWkO_-OUk'
+>>>>>>> Stashed changes
 GUILD = '1073348814573928468'
 EMOJI_BELL = '🔔'
 EMOJI_GIVEAWAY = '🎉'
