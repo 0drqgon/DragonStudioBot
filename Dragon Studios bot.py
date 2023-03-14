@@ -1,8 +1,13 @@
+import json
 import discord
 from discord.utils import get
 from discord.ext import commands
 
-TOKEN = 'MTA4NDE5NDgzNjA3NDIwNTI4NQ.Gv0Quq.RhcLDVKlP1Xf6ubVa2aXC-tzhDVS6NpfAWhIoY'
+
+with open('settings.json', 'r') as token_file:
+    data = json.load(token_file)
+TOKEN = data.get('token', None)
+
 GUILD = '1073348814573928468'
 EMOJI_BELL = '🔔'
 EMOJI_GIVEAWAY = '🎉'
