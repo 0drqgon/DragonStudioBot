@@ -102,53 +102,6 @@ async def on_voice_state_update(member, before, after):
             embed.timestamp = datetime.datetime.now()
             await logs_channel.send(embed=embed)
 
-
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
-    if message.content.startswith("!timeout"):
-        user = message.mentions[0]
-        # Set timeout duration in seconds
-        timeout_duration = 60
-        # Timeout from voice channel
-        voice_channel = message.author.voice.channel
-        if voice_channel is not None:
-            await user.edit(mute=True)
-            await asyncio.sleep(timeout_duration)
-            await user.edit(mute=False)
-            logs_channel = client.get_channel(LOGS_CHANNEL_ID)
-            if logs_channel is not None:
-                embed = discord.Embed(
-                    description=f"{user.mention} **was timed out from voice channel {voice_channel.name} for {timeout_duration} seconds**",
-                    color=discord.Color.dark_red()
-                )
-                embed.set_thumbnail(url=user.display_avatar)
-                embed.set_footer(text=f"Server: {message.guild.name}")
-                embed.set_author(name=str(user), icon_url=user.display_avatar)
-                embed.timestamp = datetime.datetime.now()
-                await logs_channel.send(embed=embed)
-        # Timeout from text channels
-        for channel in message.guild.channels:
-            if isinstance(channel, discord.TextChannel):
-                await channel.set_permissions(user, send_messages=False)
-        await asyncio.sleep(timeout_duration)
-        for channel in message.guild.channels:
-            if isinstance(channel, discord.TextChannel):
-                await channel.set_permissions(user, send_messages=True)
-        logs_channel = client.get_channel(LOGS_CHANNEL_ID)
-        if logs_channel is not None:
-            embed = discord.Embed(
-                description=f"{user.mention} **was timed out from all text channels for {timeout_duration} seconds**",
-                color=discord.Color.dark_red()
-            )
-            embed.set_thumbnail(url=user.display_avatar)
-            embed.set_footer(text=f"Server: {message.guild.name}")
-            embed.set_author(name=str(user), icon_url=user.display_avatar)
-            embed.timestamp = datetime.datetime.now()
-            await logs_channel.send(embed=embed)
-
-
 @client.event
 async def on_message_edit(before, after):
     if before.author.bot:
