@@ -15,6 +15,7 @@ if not os.path.isfile(CONFIG_PATH):
 
 with open('settings.json', 'r') as token_file:
     data = json.load(token_file)
+
 TOKEN = data.get('token', None)
 GUILD = '1085193543905181737'
 EMOJI_BELL = '🔔'
