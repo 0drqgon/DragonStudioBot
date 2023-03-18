@@ -2,9 +2,10 @@ import os
 import json
 import discord
 import asyncio
+import pytz
+import datetime
 from discord.utils import get
 from discord.ext import commands
-
 
 CONFIG_PATH = 'settings.json'
 
@@ -15,17 +16,12 @@ if not os.path.isfile(CONFIG_PATH):
 with open('settings.json', 'r') as token_file:
     data = json.load(token_file)
 TOKEN = data.get('token', None)
-
-GUILD = '1073348814573928468'
+GUILD = '1085193543905181737'
 EMOJI_BELL = '🔔'
 EMOJI_GIVEAWAY = '🎉'
-ROLE_BELL_ID = 1073682987482366014
-ROLE_GIVEAWAY_ID = 1073683339841638410
-
-intents = discord.Intents.default()
-intents.message_content = True
-
-client = commands.Bot(intents=intents, command_prefix="!")
+ROLE_BELL_ID = 1085193543905181740
+ROLE_GIVEAWAY_ID = 1085193543905181739
+LOGS_CHANNEL_ID = 1085193544655962200
 
 
 intents = discord.Intents.default()
@@ -46,16 +42,131 @@ intents.dm_typing = True
 intents.guild_messages = True
 intents.guild_reactions = True
 intents.guild_typing = True
+intents.bans = True
 
 client = commands.Bot(intents=intents, command_prefix="!")
-
 
 @client.event
 async def on_ready():
     guild = get(client.guilds, name=GUILD)
     print(f'{client.user} has connected to Discord!')
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is None:
+        print(f"Logs channel with ID {LOGS_CHANNEL_ID} not found.")
 
 
+@client.event
+async def on_member_update(before, after):
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        if before.roles != after.roles:
+            added_roles = set(after.roles) - set(before.roles)
+            removed_roles = set(before.roles) - set(after.roles)
+            embed = discord.Embed(
+                description=f":writing_hand:{after.mention} **has been updated.**",
+                color=discord.Color.blue(),
+            )
+            for role in added_roles:
+                embed.add_field(name=f"Roles: {role.name} ", value=f":white_check_mark: <@&{role.id}> ", inline=False)
+            for role in removed_roles:
+                embed.add_field(name=f"Roles: {role.name} ", value=f":no_entry: <@&{role.id}> ", inline=False)
+            embed.set_author(name=str(before), icon_url=after.display_avatar) 
+            embed.set_thumbnail(url=after.display_avatar)
+            embed.timestamp = datetime.datetime.now()
+            embed.set_footer(text=f"{after.guild.name}")
+            await logs_channel.send(embed=embed)
+
+@client.event
+async def on_message_edit(before, after):
+    if before.author.bot:
+        return  # ignore edits by bots
+    if before.content == after.content:
+        return  # ignore edits that don't change the message content
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            description=f"✏️ **Message sent by {before.author.mention} edited in {before.channel.mention}**",
+            color=discord.Color.blue(),
+        )
+        embed.set_author(name=before.author.display_name, icon_url=after.author.display_avatar) 
+        embed.add_field(name="Before", value=f"```{before.content}```", inline=False)
+        embed.add_field(name="After", value=f"```{after.content}```", inline=False)
+        embed.timestamp = datetime.datetime.now()
+        embed.set_footer(text=f"{after.guild.name}")
+        await logs_channel.send(embed=embed)
+
+@client.event
+async def on_message_delete(message):
+    if message.author.bot:
+        return  # ignore deletions by bots
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            title="Message deleted",
+            description=f" 🗑️ **Message sent by {message.author.mention} deleted in {message.channel.mention}**",
+            color=discord.Color.red(),
+        )
+        embed.add_field(name="Content:", value=message.content, inline=False)
+        embed.set_author(name=message.author.display_name, icon_url=message.author.display_avatar)
+        embed.timestamp = datetime.datetime.now()
+        embed.set_footer(text=f"{message.guild.name}")
+        await logs_channel.send(embed=embed)
+
+@client.event
+async def on_member_ban(guild, user):
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            description=f"{user.mention} was banned from the server by {guild.me.mention}.",
+            color=discord.Color.red(),
+        )
+        embed.set_author(name=str(user), icon_url=user.display_avatar)
+        embed.set_footer(text=f"Server: {guild.name}")
+        embed.timestamp = datetime.datetime.now()
+        await logs_channel.send(embed=embed)
+
+@client.event
+async def on_member_unban(guild, user):
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            description=f"{user.mention} was unbanned from the server by {guild.me.mention}.",
+            color=discord.Color.green(),
+        )
+        embed.set_author(name=str(user), icon_url=user.display_avatar)
+        embed.set_footer(text=f"Server: {guild.name}")
+        embed.timestamp = datetime.datetime.now()
+        await logs_channel.send(embed=embed)
+
+@client.event
+async def on_member_join(member):
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            title=f"{member.mention} joined the server",
+            color=discord.Color.green()
+        )
+        embed.set_thumbnail(url=member.display_avatar)
+        embed.set_footer(text=f"Server: {member.guild.name}")
+        embed.set_author(name=str(member), icon_url=member.display_avatar)
+        embed.timestamp = datetime.datetime.now()
+        await logs_channel.send(embed=embed)
+
+@client.event
+async def on_member_remove(member):
+    logs_channel = client.get_channel(LOGS_CHANNEL_ID)
+    if logs_channel is not None:
+        embed = discord.Embed(
+            title=f"{member.mention} left the server",
+            color=discord.Color.red()
+        )
+        embed.set_thumbnail(url=member.display_avatar)
+        embed.set_footer(text=f"Server: {member.guild.name}")
+        embed.set_author(name=str(member), icon_url=member.display_avatar)
+        embed.timestamp = datetime.datetime.now()
+        await logs_channel.send(embed=embed)
+
+# Ticket System
 @client.command()
 async def ticket(ctx):
     await ctx.channel.purge(limit=1)
@@ -143,8 +254,6 @@ class CloseButton(discord.ui.Button):
             content=f"{interaction.user.mention}, your ticket has been closed.",
             ephemeral=True
         )
-
-
 
 # Reaction Role function
 @client.event
