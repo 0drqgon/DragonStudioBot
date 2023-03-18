@@ -83,9 +83,9 @@ class TicketButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         if not interaction.channel:
             return await interaction.response.send_message(
-                "This button cannot be used in a direct message.",
-                ephemeral=True
-            )
+        "This button cannot be used in a direct message.",
+        ephemeral=True
+        )
 
         guild = interaction.guild
         overwrites = {
@@ -127,18 +127,18 @@ class CloseButton(discord.ui.Button):
     async def callback(self, interaction: discord.Interaction):
         if not interaction.channel:
             return await interaction.response.send_message(
-                "This button cannot be used in a direct message.",
-                ephemeral=True
-            )
-        
+        "This button cannot be used in a direct message.",
+        ephemeral=True
+        )
+
         # Rename the channel to "closed"
         await interaction.channel.edit(name=f"closed-{interaction.user.display_name}")
-        
+
         # Remove the user's permissions to view the channel
         overwrites = interaction.channel.overwrites
         overwrites[interaction.user] = discord.PermissionOverwrite(read_messages=False)
         await interaction.channel.edit(overwrites=overwrites)
-        
+
         await interaction.response.send_message(
             content=f"{interaction.user.mention}, your ticket has been closed.",
             ephemeral=True
