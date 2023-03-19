@@ -299,15 +299,31 @@ async def on_member_remove(member):
 
 
 # Ticket System
+ # Load the stored ticket message ID (if available)
+TICKET_MESSAGE_ID_FILE = 'settings.json'
+if os.path.exists(TICKET_MESSAGE_ID_FILE):
+    with open(TICKET_MESSAGE_ID_FILE, 'r') as f:
+        TICKET_MESSAGE_ID = json.load(f)
+else:
+    TICKET_MESSAGE_ID = None
+
 @client.command()
 async def ticket(ctx):
-	await ctx.channel.purge(limit=1)
-	embed = discord.Embed(
-		title="Support Ticket",
-		description="Click the button below to open a support ticket.",
-		color=discord.Color.blue()
-	)
-	message = await ctx.send(embed=embed, view=TicketButtonView())
+    await ctx.channel.purge(limit=1)
+    if TICKET_MESSAGE_ID is not None:
+        # Use the stored message ID
+        message = await ctx.channel.fetch_message(TICKET_MESSAGE_ID)
+    else:
+        # Create a new message and store its ID
+        embed = discord.Embed(
+            title="Support Ticket",
+            description="Click the button below to open a support ticket.",
+            color=discord.Color.blue()
+        )
+        message = await ctx.send(embed=embed, view=TicketButtonView())
+        TICKET_MESSAGE_ID = message.id
+        with open(TICKET_MESSAGE_ID_FILE, 'w') as f:
+            json.dump(TICKET_MESSAGE_ID, f)
 
 
 class TicketButtonView(discord.ui.View):
